@@ -1,36 +1,57 @@
 <?php
-// 1. Load Autoload Composer (Untuk Blade)
+// index.php
+
+// 1. Load Autoload Composer & Configs
 require 'vendor/autoload.php';
+require 'config/database.php';
+require 'config/globals.php';
+require 'config/helpers.php';
+require 'config/router.php'; // <-- Load router di sini
 
-// 2. Load File di folder Config
-require 'config/database.php'; // Menyediakan variabel $pdo
-require 'config/globals.php';  // Menyediakan konstanta & $GLOBALS
-require 'config/helpers.php';  // Menyediakan fungsi dd() dan sanitize()
-
-// 3. Load File Model
+// 2. Load Models
 require 'models/UserModel.php';
 
 use eftec\bladeone\BladeOne;
 
-// 4. Inisialisasi Model & Ambil Data
-$userModel = new UserModel($pdo);
-$daftarUser = $userModel->getAllUsers(); // Mengambil data dari database
+// 3. Setup Blade Engine Global Function (agar bisa dipakai di dalam route)
+function view($viewName, $data = [])
+{
+    $views = __DIR__ . '/views';
+    $cache = __DIR__ . '/cache';
+    $blade = new BladeOne($views, $cache, BladeOne::MODE_DEBUG);
+    echo $blade->run($viewName, $data);
+}
 
-// Contoh penggunaan helper global dd() untuk debug (opsional, hapus jika tidak dipakai)
-// dd($daftarUser); 
+// ==========================================
+// 4. DEFINISIKAN ROUTE / URL DI SINI
+// ==========================================
 
-// 5. Inisialisasi Blade Engine
-$views = __DIR__ . '/views';
-$cache = __DIR__ . '/cache';
-// Di BladeOne, kita bisa mengatur mode error (MODE_DEBUG sangat cocok untuk development)
-$blade = new BladeOne($views, $cache, BladeOne::MODE_DEBUG);
+// Route untuk Halaman Utama (Homepage)
+Router::get('/', function () {
+    global $pdo; // Panggil koneksi database global
 
-// 6. Siapkan data untuk View
-$data = [
-    'title' => APP_NAME, // Menggunakan konstanta global
-    'users' => $daftarUser
-];
+    $userModel = new UserModel($pdo);
+    $daftarUser = $userModel->getAllUsers();
 
-// 7. Render View
-// Cara manggilnya sama persis memakai method run() atau render()
-echo $blade->run('home', $data);
+    view('home', [
+        'title' => APP_NAME,
+        'users' => $daftarUser
+    ]);
+});
+
+// Route untuk Halaman Tentang Kami (Contoh Halaman Statis)
+Router::get('/about', function () {
+    view('about', [
+        'title' => 'Tentang Kami - ' . APP_NAME
+    ]);
+});
+
+// Route untuk Proses Simpan Data Form (Method POST)
+Router::post('/user/simpan', function () {
+    // Logic untuk menyimpan data user ke database ada di sini...
+    echo "Proses menyimpan data...";
+});
+
+
+// 5. Jalankan Engine Router
+Router::run();
