@@ -13,14 +13,14 @@ class UserModel
    // Mengambil semua data user
    public function getAllUsers()
    {
-      $stmt = $this->db->query("SELECT * FROM appUser");
+      $stmt = $this->db->query("SELECT * FROM user");
       return $stmt->fetchAll();
    }
 
    // Mengambil user berdasarkan ID
    public function findById($id)
    {
-      $stmt = $this->db->prepare("SELECT * FROM appUser WHERE id = :id");
+      $stmt = $this->db->prepare("SELECT * FROM user WHERE id = :id");
       $stmt->execute(['id' => $id]);
       return $stmt->fetch();
    }
